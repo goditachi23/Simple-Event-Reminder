@@ -1,24 +1,33 @@
-package com.example.eventreminder
+// D:/Simple Event Reminder/app/src/main/java/com/example/planpal/MainActivity.kt
+
+package com.example.planpal
 
 import android.Manifest
-import android.app.DatePickerDialog
+import android.app.AlarmManager // You will also need this for requestExactAlarmPermission
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent // And this one
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings // And this one
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat // <-- ADD THIS LINE
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.eventreminder.AddEventDialog
+import com.example.eventreminder.EventAdapter
+import com.example.eventreminder.NotificationScheduler
+import com.example.eventreminder.R
 import com.example.eventreminder.databinding.ActivityMainBinding
 import com.example.planpal.DatabaseHelper
 import com.example.planpal.Event
-import java.text.SimpleDateFormat
-import java.util.*
+
+// ... rest of your class
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,11 +54,18 @@ class MainActivity : AppCompatActivity() {
         // Initialize database
         dbHelper = DatabaseHelper(this)
 
+        requestExactAlarmPermission()
+        dbHelper = DatabaseHelper(this)
         // Request notification permission for Android 13+
         requestNotificationPermission()
 
         // Setup RecyclerView
         setupRecyclerView()
+
+        binding.fabAddEvent.setOnLongClickListener {
+            testNotification()
+            true
+        }
 
         // Load events from database
         loadEvents()
@@ -57,6 +73,29 @@ class MainActivity : AppCompatActivity() {
         // Setup add event button
         binding.fabAddEvent.setOnClickListener {
             showAddEventDialog()
+        }
+    }
+
+    private fun testNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val notification = NotificationCompat.Builder(this, "EVENT_REMINDER")
+            .setContentTitle("Test Notification")
+            .setContentText("This is a test notification")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(999, notification)
+    }
+    private fun requestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
+            }
         }
     }
 

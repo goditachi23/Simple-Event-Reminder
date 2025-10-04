@@ -4,7 +4,10 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.util.Log
 import com.example.planpal.Event
+import com.example.planpal.NotificationReceiver
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,11 +35,19 @@ object NotificationScheduler {
         try {
             val eventDateTime = dateFormat.parse(dateTimeString)
             eventDateTime?.let {
-                // Schedule notification 15 minutes before the event
-                val notificationTime = it.time - (15 * 60 * 1000) // 15 minutes in milliseconds
+                // For testing: Schedule notification 1 minute from now instead of 15 minutes before
+                val notificationTime = System.currentTimeMillis() + (1 * 60 * 1000) // 1 minute for testing
 
-                if (notificationTime > System.currentTimeMillis()) {
+                Log.d("EventReminder", "Scheduling notification for: ${Date(notificationTime)}")
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        notificationTime,
+                        pendingIntent
+                    )
+                } else {
+                    alarmManager.setExact(
                         AlarmManager.RTC_WAKEUP,
                         notificationTime,
                         pendingIntent
@@ -44,9 +55,10 @@ object NotificationScheduler {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("EventReminder", "Error scheduling notification", e)
         }
     }
+
 
     fun cancelNotification(context: Context, eventId: Int) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager

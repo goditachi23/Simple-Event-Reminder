@@ -22,8 +22,11 @@ android {
             isMinifyEnabled = false // Changed to 'isMinifyEnabled' for Kotlin
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") // Changed
         }
+        debug {
+            isDebuggable = true
+            // Add logging
+        }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8 // Changed
         targetCompatibility = JavaVersion.VERSION_1_8 // Changed
